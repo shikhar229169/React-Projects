@@ -7,7 +7,8 @@ function App() {
   const [from, setFrom] = useState("usd")
   const [to, setTo] = useState("inr")
   const [convertedAmount, setConvertedAmount] = useState(0)
-  const currencyInfo = useCurrencyInfo(from)
+  // const currencyInfo = useCurrencyInfo(from)
+  const [currencyInfo, setCurrencyInfo] = useState({})
 
   const currencyOptions = Object.keys(currencyInfo)
 
@@ -18,16 +19,26 @@ function App() {
     setAmount(convertedAmount)
   }
 
-  // const convert = () => {
-  //   setConvertedAmount(amount * currencyInfo[to])
-  // }
+  // I don't want the user to submit it to get the converted price, it will be handled as the user provide the input
+  const convert = () => {
+    setConvertedAmount(amount * currencyInfo[to])
+  }
+
+  const handleFromChange = () => {
+    fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/${from}.json`)
+    .then((res) => res.json())
+    .then((res) => {
+      setCurrencyInfo(res[from])
+    })
+    .then(() => {console.log(currencyInfo);convert()})
+  }
 
   // the catch over here is that this will execute when any of the 3 dependencies will change
   // but when we change 'from', we are placing an api call, so that will take time, and before the api call was made
   // the below callback function will get executed, and will lead to wrong calculation as the currencyInfo is not updated yet
-  useEffect(() => {
-    setConvertedAmount(amount * currencyInfo[to])
-  }, [amount, from, to])
+  useEffect(handleFromChange, [from])
+  useEffect(convert, [amount, to])
+
 
   return (
     <div
